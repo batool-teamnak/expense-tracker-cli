@@ -1,5 +1,5 @@
 # v28020
-import json, csv, os
+import json, csv, os, math
 from datetime import datetime
 
 DB = os.path.expanduser("~/.expenses.json")
@@ -15,6 +15,12 @@ def save(data):
         json.dump(data, f, indent=2)
 
 def add(amount, category, note=""):
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        raise ValueError("amount must be a positive finite number") from None
+    if not math.isfinite(amount) or amount <= 0:
+        raise ValueError("amount must be a positive finite number")
     data = load()
     data.append({"id": len(data)+1, "amount": float(amount),
                   "category": category, "note": note,
