@@ -21,6 +21,9 @@ def add(amount, category, note=""):
         raise ValueError("amount must be a positive finite number") from None
     if not math.isfinite(amount) or amount <= 0:
         raise ValueError("amount must be a positive finite number")
+    if not isinstance(category, str) or not category.strip():
+        raise ValueError("category must not be empty")
+    category = category.strip()
     data = load()
     data.append({"id": len(data)+1, "amount": float(amount),
                   "category": category, "note": note,

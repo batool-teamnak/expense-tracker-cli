@@ -31,3 +31,10 @@ class TrackerTests(unittest.TestCase):
         self.quiet(tracker.add, '12.5', 'food')
         self.assertEqual(tracker.load()[0]['amount'], 12.5)
 
+    def test_category_validation(self):
+        for category in ('', '  ', None):
+            with self.assertRaises(ValueError):
+                tracker.add(10, category)
+        self.quiet(tracker.add, 10, ' food ')
+        self.assertEqual(tracker.load()[0]['category'], 'food')
+
