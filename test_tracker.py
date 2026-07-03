@@ -38,3 +38,14 @@ class TrackerTests(unittest.TestCase):
         self.quiet(tracker.add, 10, ' food ')
         self.assertEqual(tracker.load()[0]['category'], 'food')
 
+    def test_month_cli(self):
+        self.quiet(tracker.add, 10, 'food', 'selected')
+        row = tracker.load()[0]
+        row['date'] = '2026-07-03'
+        tracker.save([row])
+        self.assertIn('selected', self.quiet(tracker.main, ['list', '--month', '2026-07']))
+        self.assertNotIn('selected', self.quiet(tracker.main, ['list', '2026-08']))
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:
+            tracker.main(['list', '--month', '2026-13'])
+        self.assertEqual(error.exception.code, 2)
+

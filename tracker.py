@@ -56,16 +56,38 @@ def export(path):
         w.writerows(data)
     print(f"Exported {len(data)} records to {path}")
 
+def valid_month(value):
+    import re
+    if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+        raise ValueError("month must use YYYY-MM format")
+    return value
+
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(description="Track expenses and export reports")
+    commands = parser.add_subparsers(dest="command", required=True)
+    add_parser = commands.add_parser("add")
+    add_parser.add_argument("amount")
+    add_parser.add_argument("category")
+    add_parser.add_argument("note", nargs="?", default="")
+    listing = commands.add_parser("list")
+    listing.add_argument("month", nargs="?", type=valid_month)
+    listing.add_argument("--month", dest="month_option", type=valid_month)
+    commands.add_parser("report")
+    exporting = commands.add_parser("export")
+    exporting.add_argument("path")
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "add":
+            add(args.amount, args.category, args.note)
+        elif args.command == "list":
+            list_expenses(args.month_option or args.month)
+        elif args.command == "report":
+            report()
+        elif args.command == "export":
+            export(args.path)
+    except (ValueError, OSError) as exc:
+        parser.error(str(exc))
+
 if __name__ == "__main__":
-    import sys
-    args = sys.argv[1:]
-    if not args:
-        print("Usage: tracker.py [add|list|report|export]")
-    elif args[0] == "add" and len(args) >= 3:
-        add(args[1], args[2], args[3] if len(args) > 3 else "")
-    elif args[0] == "list":
-        list_expenses(args[1] if len(args) > 1 else None)
-    elif args[0] == "report":
-        report()
-    elif args[0] == "export" and len(args) > 1:
-        export(args[1])
+    main()
