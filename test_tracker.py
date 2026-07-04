@@ -49,3 +49,14 @@ class TrackerTests(unittest.TestCase):
             tracker.main(['list', '--month', '2026-13'])
         self.assertEqual(error.exception.code, 2)
 
+    def test_month_report(self):
+        self.quiet(tracker.add, 10, 'food')
+        self.quiet(tracker.add, 20, 'transport')
+        rows = tracker.load()
+        rows[0]['date'], rows[1]['date'] = '2026-07-01', '2026-08-01'
+        tracker.save(rows)
+        result = self.quiet(tracker.main, ['report', '--month', '2026-07'])
+        self.assertIn('food', result)
+        self.assertNotIn('transport', result)
+        self.assertIn('10.00', result)
+

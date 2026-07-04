@@ -38,8 +38,11 @@ def list_expenses(month=None):
     for e in data:
         print(f"[{e['id']}] {e['date']} | {e['category']:12} | {e['amount']:8.2f} | {e['note']}")
 
-def report():
+def report(month=None):
     data = load()
+    if month:
+        valid_month(month)
+        data = [e for e in data if e["date"].startswith(month)]
     totals = {}
     for e in data:
         totals[e["category"]] = totals.get(e["category"], 0) + e["amount"]
@@ -73,7 +76,8 @@ def main(argv=None):
     listing = commands.add_parser("list")
     listing.add_argument("month", nargs="?", type=valid_month)
     listing.add_argument("--month", dest="month_option", type=valid_month)
-    commands.add_parser("report")
+    reporting = commands.add_parser("report")
+    reporting.add_argument("--month", type=valid_month)
     exporting = commands.add_parser("export")
     exporting.add_argument("path")
     args = parser.parse_args(argv)
@@ -83,7 +87,7 @@ def main(argv=None):
         elif args.command == "list":
             list_expenses(args.month_option or args.month)
         elif args.command == "report":
-            report()
+            report(args.month)
         elif args.command == "export":
             export(args.path)
     except (ValueError, OSError) as exc:
