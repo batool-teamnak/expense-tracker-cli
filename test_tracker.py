@@ -60,3 +60,11 @@ class TrackerTests(unittest.TestCase):
         self.assertNotIn('transport', result)
         self.assertIn('10.00', result)
 
+    def test_ids_survive_gaps(self):
+        self.quiet(tracker.add, 10, 'food')
+        rows = tracker.load()
+        rows[0]['id'] = 9
+        tracker.save(rows)
+        self.quiet(tracker.add, 20, 'fuel')
+        self.assertEqual([r['id'] for r in tracker.load()], [9, 10])
+

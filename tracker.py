@@ -25,7 +25,7 @@ def add(amount, category, note=""):
         raise ValueError("category must not be empty")
     category = category.strip()
     data = load()
-    data.append({"id": len(data)+1, "amount": float(amount),
+    data.append({"id": max((e["id"] for e in data), default=0) + 1, "amount": float(amount),
                   "category": category, "note": note,
                   "date": datetime.now().strftime("%Y-%m-%d")})
     save(data)
