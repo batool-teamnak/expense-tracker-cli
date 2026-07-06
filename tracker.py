@@ -31,6 +31,14 @@ def add(amount, category, note=""):
     save(data)
     print(f"Added: {category} - {amount}")
 
+def delete(expense_id):
+    data = load()
+    remaining = [e for e in data if e["id"] != expense_id]
+    if len(remaining) == len(data):
+        raise ValueError(f"expense {expense_id} does not exist")
+    save(remaining)
+    print(f"Deleted expense {expense_id}")
+
 def list_expenses(month=None):
     data = load()
     if month:
@@ -78,6 +86,8 @@ def main(argv=None):
     listing.add_argument("--month", dest="month_option", type=valid_month)
     reporting = commands.add_parser("report")
     reporting.add_argument("--month", type=valid_month)
+    deleting = commands.add_parser("delete")
+    deleting.add_argument("id", type=int)
     exporting = commands.add_parser("export")
     exporting.add_argument("path")
     args = parser.parse_args(argv)
@@ -88,6 +98,8 @@ def main(argv=None):
             list_expenses(args.month_option or args.month)
         elif args.command == "report":
             report(args.month)
+        elif args.command == "delete":
+            delete(args.id)
         elif args.command == "export":
             export(args.path)
     except (ValueError, OSError) as exc:

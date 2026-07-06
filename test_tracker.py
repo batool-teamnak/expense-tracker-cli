@@ -68,3 +68,13 @@ class TrackerTests(unittest.TestCase):
         self.quiet(tracker.add, 20, 'fuel')
         self.assertEqual([r['id'] for r in tracker.load()], [9, 10])
 
+    def test_delete(self):
+        self.quiet(tracker.add, 10, 'food')
+        self.quiet(tracker.add, 20, 'fuel')
+        self.quiet(tracker.main, ['delete', '1'])
+        self.assertEqual([r['id'] for r in tracker.load()], [2])
+        before = Path(self.db).read_bytes()
+        with self.assertRaises(ValueError):
+            tracker.delete(99)
+        self.assertEqual(Path(self.db).read_bytes(), before)
+
