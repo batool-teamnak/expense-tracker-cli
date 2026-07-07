@@ -31,6 +31,27 @@ def add(amount, category, note=""):
     save(data)
     print(f"Added: {category} - {amount}")
 
+def edit(expense_id, amount=None, category=None, note=None):
+    data = load()
+    row = next((e for e in data if e["id"] == expense_id), None)
+    if row is None:
+        raise ValueError(f"expense {expense_id} does not exist")
+    if amount is None and category is None and note is None:
+        raise ValueError("provide an amount, category or note to edit")
+    if amount is not None:
+        amount = float(amount)
+        if not math.isfinite(amount) or amount <= 0:
+            raise ValueError("amount must be a positive finite number")
+        row["amount"] = amount
+    if category is not None:
+        if not category.strip():
+            raise ValueError("category must not be empty")
+        row["category"] = category.strip()
+    if note is not None:
+        row["note"] = note
+    save(data)
+    print(f"Updated expense {expense_id}")
+
 def delete(expense_id):
     data = load()
     remaining = [e for e in data if e["id"] != expense_id]
@@ -86,6 +107,11 @@ def main(argv=None):
     listing.add_argument("--month", dest="month_option", type=valid_month)
     reporting = commands.add_parser("report")
     reporting.add_argument("--month", type=valid_month)
+    editing = commands.add_parser("edit")
+    editing.add_argument("id", type=int)
+    editing.add_argument("--amount")
+    editing.add_argument("--category")
+    editing.add_argument("--note")
     deleting = commands.add_parser("delete")
     deleting.add_argument("id", type=int)
     exporting = commands.add_parser("export")
@@ -98,6 +124,8 @@ def main(argv=None):
             list_expenses(args.month_option or args.month)
         elif args.command == "report":
             report(args.month)
+        elif args.command == "edit":
+            edit(args.id, args.amount, args.category, args.note)
         elif args.command == "delete":
             delete(args.id)
         elif args.command == "export":

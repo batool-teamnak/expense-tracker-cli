@@ -78,3 +78,16 @@ class TrackerTests(unittest.TestCase):
             tracker.delete(99)
         self.assertEqual(Path(self.db).read_bytes(), before)
 
+    def test_edit(self):
+        self.quiet(tracker.add, 10, 'food', 'old')
+        original = tracker.load()[0]
+        self.quiet(tracker.main, ['edit', '1', '--amount', '25', '--note', ''])
+        row = tracker.load()[0]
+        self.assertEqual((row['id'], row['date'], row['category']),
+                         (original['id'], original['date'], original['category']))
+        self.assertEqual((row['amount'], row['note']), (25, ''))
+        before = Path(self.db).read_bytes()
+        with self.assertRaises(ValueError):
+            tracker.edit(1, amount=30, category=' ')
+        self.assertEqual(Path(self.db).read_bytes(), before)
+
