@@ -91,3 +91,12 @@ class TrackerTests(unittest.TestCase):
             tracker.edit(1, amount=30, category=' ')
         self.assertEqual(Path(self.db).read_bytes(), before)
 
+    def test_failed_save_preserves_database(self):
+        self.quiet(tracker.add, 10, 'food')
+        before = Path(self.db).read_bytes()
+        with patch.object(tracker.os, 'replace', side_effect=OSError('disk failure')):
+            with self.assertRaises(OSError):
+                tracker.save([])
+        self.assertEqual(Path(self.db).read_bytes(), before)
+        self.assertEqual(list(Path(self.temp.name).iterdir()), [Path(self.db)])
+

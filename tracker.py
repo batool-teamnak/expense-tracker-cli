@@ -1,5 +1,6 @@
 # v28020
-import json, csv, os, math
+import json, csv, os, math, tempfile
+from pathlib import Path
 from datetime import datetime
 
 DB = os.path.expanduser("~/.expenses.json")
@@ -11,8 +12,20 @@ def load():
     return []
 
 def save(data):
-    with open(DB, "w") as f:
-        json.dump(data, f, indent=2)
+    path = Path(DB)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                         delete=False) as f:
+            temporary = f.name
+            json.dump(data, f, indent=2, ensure_ascii=False, allow_nan=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
 
 def add(amount, category, note=""):
     try:
