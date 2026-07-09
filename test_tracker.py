@@ -100,3 +100,11 @@ class TrackerTests(unittest.TestCase):
         self.assertEqual(Path(self.db).read_bytes(), before)
         self.assertEqual(list(Path(self.temp.name).iterdir()), [Path(self.db)])
 
+    def test_invalid_database_is_preserved(self):
+        for value in ({}, [{}], [{'id': 1}], [dict(id=1, amount=10, category='food', date='2026-02-30', note='')]):
+            Path(self.db).write_text(json.dumps(value))
+            before = Path(self.db).read_bytes()
+            with self.assertRaises(ValueError):
+                tracker.add(10, 'food')
+            self.assertEqual(Path(self.db).read_bytes(), before)
+

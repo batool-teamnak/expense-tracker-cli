@@ -7,8 +7,30 @@ DB = os.path.expanduser("~/.expenses.json")
 
 def load():
     if os.path.exists(DB):
-        with open(DB) as f:
-            return json.load(f)
+        with open(DB, encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, list):
+            raise ValueError("expense database must contain a list")
+        seen = set()
+        for e in data:
+            if not isinstance(e, dict) or not {"id", "amount", "category", "date", "note"} <= e.keys():
+                raise ValueError("expense database contains an incomplete record")
+            if isinstance(e["id"], bool) or not isinstance(e["id"], int) or e["id"] <= 0 or e["id"] in seen:
+                raise ValueError("expense IDs must be unique positive integers")
+            seen.add(e["id"])
+            if isinstance(e["amount"], bool) or not isinstance(e["amount"], (int, float)) or not math.isfinite(e["amount"]) or e["amount"] <= 0:
+                raise ValueError("expense amounts must be positive finite numbers")
+            if not isinstance(e["category"], str) or not e["category"].strip() or not isinstance(e["note"], str):
+                raise ValueError("expense category and note must be valid text")
+            if not isinstance(e["date"], str):
+                raise ValueError("expense dates must use YYYY-MM-DD")
+            try:
+                parsed = datetime.strptime(e["date"], "%Y-%m-%d")
+            except ValueError:
+                raise ValueError("expense dates must use YYYY-MM-DD") from None
+            if parsed.strftime("%Y-%m-%d") != e["date"]:
+                raise ValueError("expense dates must use YYYY-MM-DD")
+        return data
     return []
 
 def save(data):
