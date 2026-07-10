@@ -132,6 +132,7 @@ def valid_month(value):
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description="Track expenses and export reports")
+    parser.add_argument("--database", help="expense JSON file (default: ~/.expenses.json)")
     commands = parser.add_subparsers(dest="command", required=True)
     add_parser = commands.add_parser("add")
     add_parser.add_argument("amount")
@@ -152,6 +153,9 @@ def main(argv=None):
     exporting = commands.add_parser("export")
     exporting.add_argument("path")
     args = parser.parse_args(argv)
+    global DB
+    if args.database:
+        DB = os.path.expanduser(args.database)
     try:
         if args.command == "add":
             add(args.amount, args.category, args.note)

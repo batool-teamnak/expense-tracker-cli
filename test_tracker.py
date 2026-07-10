@@ -108,3 +108,10 @@ class TrackerTests(unittest.TestCase):
                 tracker.add(10, 'food')
             self.assertEqual(Path(self.db).read_bytes(), before)
 
+    def test_custom_database(self):
+        custom = str(Path(self.temp.name) / 'nested' / 'work.json')
+        self.quiet(tracker.main, ['--database', custom, 'add', '15', 'work'])
+        self.assertTrue(Path(custom).exists())
+        self.assertFalse(Path(self.db).exists())
+        self.assertEqual(json.loads(Path(custom).read_text())[0]['category'], 'work')
+
