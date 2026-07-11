@@ -49,7 +49,16 @@ def save(data):
         if temporary and os.path.exists(temporary):
             os.unlink(temporary)
 
-def add(amount, category, note=""):
+def valid_date(value):
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        raise ValueError("date must use YYYY-MM-DD") from None
+    if parsed.strftime("%Y-%m-%d") != value:
+        raise ValueError("date must use YYYY-MM-DD")
+    return value
+
+def add(amount, category, note="", date=None):
     try:
         amount = float(amount)
     except (TypeError, ValueError):
@@ -59,10 +68,11 @@ def add(amount, category, note=""):
     if not isinstance(category, str) or not category.strip():
         raise ValueError("category must not be empty")
     category = category.strip()
+    date = valid_date(date) if date is not None else datetime.now().strftime("%Y-%m-%d")
     data = load()
     data.append({"id": max((e["id"] for e in data), default=0) + 1, "amount": float(amount),
                   "category": category, "note": note,
-                  "date": datetime.now().strftime("%Y-%m-%d")})
+                  "date": date})
     save(data)
     print(f"Added: {category} - {amount}")
 
@@ -138,6 +148,7 @@ def main(argv=None):
     add_parser.add_argument("amount")
     add_parser.add_argument("category")
     add_parser.add_argument("note", nargs="?", default="")
+    add_parser.add_argument("--date", type=valid_date)
     listing = commands.add_parser("list")
     listing.add_argument("month", nargs="?", type=valid_month)
     listing.add_argument("--month", dest="month_option", type=valid_month)
@@ -158,7 +169,7 @@ def main(argv=None):
         DB = os.path.expanduser(args.database)
     try:
         if args.command == "add":
-            add(args.amount, args.category, args.note)
+            add(args.amount, args.category, args.note, args.date)
         elif args.command == "list":
             list_expenses(args.month_option or args.month)
         elif args.command == "report":

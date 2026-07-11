@@ -115,3 +115,11 @@ class TrackerTests(unittest.TestCase):
         self.assertFalse(Path(self.db).exists())
         self.assertEqual(json.loads(Path(custom).read_text())[0]['category'], 'work')
 
+    def test_explicit_expense_date(self):
+        self.quiet(tracker.main, ['add', '15', 'food', '--date', '2024-02-29'])
+        self.assertEqual(tracker.load()[0]['date'], '2024-02-29')
+        for date in ('2025-02-29', '2026-7-1', 'bad'):
+            with self.assertRaises(ValueError):
+                tracker.add(10, 'food', date=date)
+        self.assertEqual(len(tracker.load()), 1)
+
