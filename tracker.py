@@ -105,10 +105,12 @@ def delete(expense_id):
     save(remaining)
     print(f"Deleted expense {expense_id}")
 
-def list_expenses(month=None):
+def list_expenses(month=None, category=None):
     data = load()
     if month:
         data = [e for e in data if e["date"].startswith(month)]
+    if category is not None:
+        data = [e for e in data if e["category"] == category.strip()]
     for e in data:
         print(f"[{e['id']}] {e['date']} | {e['category']:12} | {e['amount']:8.2f} | {e['note']}")
 
@@ -150,6 +152,7 @@ def main(argv=None):
     add_parser.add_argument("note", nargs="?", default="")
     add_parser.add_argument("--date", type=valid_date)
     listing = commands.add_parser("list")
+    listing.add_argument("--category")
     listing.add_argument("month", nargs="?", type=valid_month)
     listing.add_argument("--month", dest="month_option", type=valid_month)
     reporting = commands.add_parser("report")
@@ -171,7 +174,7 @@ def main(argv=None):
         if args.command == "add":
             add(args.amount, args.category, args.note, args.date)
         elif args.command == "list":
-            list_expenses(args.month_option or args.month)
+            list_expenses(args.month_option or args.month, args.category)
         elif args.command == "report":
             report(args.month)
         elif args.command == "edit":

@@ -123,3 +123,10 @@ class TrackerTests(unittest.TestCase):
                 tracker.add(10, 'food', date=date)
         self.assertEqual(len(tracker.load()), 1)
 
+    def test_category_filter(self):
+        self.quiet(tracker.add, 10, 'food', 'lunch')
+        self.quiet(tracker.add, 20, 'transport', 'taxi')
+        output = self.quiet(tracker.main, ['list', '--category', 'food'])
+        self.assertIn('lunch', output)
+        self.assertNotIn('taxi', output)
+
