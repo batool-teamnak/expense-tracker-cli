@@ -130,3 +130,15 @@ class TrackerTests(unittest.TestCase):
         self.assertIn('lunch', output)
         self.assertNotIn('taxi', output)
 
+    def test_csv_import_is_atomic(self):
+        self.quiet(tracker.add, 5, 'existing')
+        path = Path(self.temp.name) / 'import.csv'
+        path.write_text('date,category,amount,note\n2026-07-01,food,10,ok\n2026-07-02,food,nan,bad\n')
+        before = Path(self.db).read_bytes()
+        with self.assertRaises(ValueError):
+            tracker.import_csv(path)
+        self.assertEqual(Path(self.db).read_bytes(), before)
+        path.write_text('date,category,amount,note\n2026-07-01,food,10,ok\n')
+        self.quiet(tracker.main, ['import', str(path)])
+        self.assertEqual([r['id'] for r in tracker.load()], [1, 2])
+

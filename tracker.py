@@ -127,6 +127,29 @@ def report(month=None):
         print(f"  {cat:15} {total:8.2f}")
     print(f"  {'TOTAL':15} {sum(totals.values()):8.2f}\n")
 
+def import_csv(path):
+    data = load()
+    next_id = max((e["id"] for e in data), default=0) + 1
+    incoming = []
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames or not {"date", "category", "amount", "note"} <= set(reader.fieldnames):
+            raise ValueError("CSV requires date, category, amount and note columns")
+        for line, row in enumerate(reader, start=2):
+            try:
+                amount = float(row["amount"])
+                category = row["category"].strip()
+                date = valid_date(row["date"])
+                if not math.isfinite(amount) or amount <= 0 or not category or row["note"] is None:
+                    raise ValueError("invalid amount, category or note")
+            except (ValueError, TypeError, AttributeError) as exc:
+                raise ValueError(f"invalid CSV row {line}: {exc}") from None
+            incoming.append(dict(id=next_id, date=date, category=category, amount=amount, note=row["note"]))
+            next_id += 1
+    if incoming:
+        save(data + incoming)
+    print(f"Imported {len(incoming)} records")
+
 def export(path):
     data = load()
     with open(path, "w", newline="") as f:
@@ -164,6 +187,8 @@ def main(argv=None):
     editing.add_argument("--note")
     deleting = commands.add_parser("delete")
     deleting.add_argument("id", type=int)
+    importing = commands.add_parser("import")
+    importing.add_argument("path")
     exporting = commands.add_parser("export")
     exporting.add_argument("path")
     args = parser.parse_args(argv)
@@ -181,6 +206,8 @@ def main(argv=None):
             edit(args.id, args.amount, args.category, args.note)
         elif args.command == "delete":
             delete(args.id)
+        elif args.command == "import":
+            import_csv(args.path)
         elif args.command == "export":
             export(args.path)
     except (ValueError, OSError) as exc:
