@@ -151,8 +151,10 @@ def import_csv(path):
     print(f"Imported {len(incoming)} records")
 
 def export(path):
+    if Path(path).resolve() == Path(DB).resolve():
+        raise ValueError("CSV export must not overwrite the expense database")
     data = load()
-    with open(path, "w", newline="") as f:
+    with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["id","date","category","amount","note"])
         w.writeheader()
         w.writerows(data)

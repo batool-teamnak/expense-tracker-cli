@@ -142,3 +142,13 @@ class TrackerTests(unittest.TestCase):
         self.quiet(tracker.main, ['import', str(path)])
         self.assertEqual([r['id'] for r in tracker.load()], [1, 2])
 
+    def test_export_cannot_overwrite_database(self):
+        self.quiet(tracker.add, 10, 'food', 'روٹی')
+        before = Path(self.db).read_bytes()
+        with self.assertRaises(ValueError):
+            tracker.export(self.db)
+        self.assertEqual(Path(self.db).read_bytes(), before)
+        path = Path(self.temp.name) / 'export.csv'
+        self.quiet(tracker.export, path)
+        self.assertIn('روٹی', path.read_text(encoding='utf-8'))
+
