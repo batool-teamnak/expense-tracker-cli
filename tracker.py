@@ -2,6 +2,7 @@
 import json, csv, os, math, tempfile
 from pathlib import Path
 from datetime import datetime
+from decimal import Decimal
 
 DB = os.path.expanduser("~/.expenses.json")
 
@@ -121,11 +122,11 @@ def report(month=None):
         data = [e for e in data if e["date"].startswith(month)]
     totals = {}
     for e in data:
-        totals[e["category"]] = totals.get(e["category"], 0) + e["amount"]
+        totals[e["category"]] = totals.get(e["category"], Decimal("0")) + Decimal(str(e["amount"]))
     print("\n--- Report ---")
     for cat, total in sorted(totals.items(), key=lambda x: -x[1]):
         print(f"  {cat:15} {total:8.2f}")
-    print(f"  {'TOTAL':15} {sum(totals.values()):8.2f}\n")
+    print(f"  {'TOTAL':15} {sum(totals.values(), Decimal('0')):8.2f}\n")
 
 def import_csv(path):
     data = load()

@@ -152,3 +152,10 @@ class TrackerTests(unittest.TestCase):
         self.quiet(tracker.export, path)
         self.assertIn('روٹی', path.read_text(encoding='utf-8'))
 
+    def test_decimal_report_totals(self):
+        self.quiet(tracker.add, '0.1', 'food')
+        self.quiet(tracker.add, '0.2', 'food')
+        output = self.quiet(tracker.report)
+        self.assertEqual(output.count('0.30'), 2)
+        self.assertIn('0.00', self.quiet(lambda: (tracker.save([]), tracker.report())))
+
