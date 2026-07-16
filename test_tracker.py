@@ -159,3 +159,13 @@ class TrackerTests(unittest.TestCase):
         self.assertEqual(output.count('0.30'), 2)
         self.assertIn('0.00', self.quiet(lambda: (tracker.save([]), tracker.report())))
 
+    def test_documented_workflow(self):
+        self.quiet(tracker.main, ['add', '500', 'food', 'Groceries', '--date', '2026-07-01'])
+        self.quiet(tracker.main, ['edit', '1', '--amount', '450'])
+        self.assertIn('450.00', self.quiet(tracker.main, ['report', '--month', '2026-07']))
+        csv_path = str(Path(self.temp.name) / 'expenses.csv')
+        self.quiet(tracker.main, ['export', csv_path])
+        self.quiet(tracker.main, ['delete', '1'])
+        self.quiet(tracker.main, ['import', csv_path])
+        self.assertEqual(tracker.load()[0]['amount'], 450)
+
