@@ -27,7 +27,7 @@ python tracker.py export expenses.csv
 ## Installation
 
 ```bash
-git clone https://github.com/nadir-ali-khan/expense-tracker-cli
+git clone https://github.com/batool-teamnak/expense-tracker-cli
 cd expense-tracker-cli
 python tracker.py
 ```
